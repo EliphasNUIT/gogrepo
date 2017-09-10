@@ -106,7 +106,7 @@ GOG_MEDIA_TYPE_MOVIE = '2'
 HTTP_FETCH_DELAY = 1   # in seconds
 HTTP_RETRY_DELAY = 5   # in seconds
 HTTP_RETRY_COUNT = 3
-HTTP_GAME_DOWNLOADER_THREADS = 4
+HTTP_GAME_DOWNLOADER_THREADS = 10
 HTTP_PERM_ERRORCODES = (404, 403, 503)
 
 # Save manifest data for these os and lang combinations
@@ -295,6 +295,10 @@ def test_zipfile(filename):
             if f.testzip() is None:
                 return True
     except zipfile.BadZipfile:
+        return False
+    except zipfile.LargeZipFile:
+        return False
+    except:
         return False
 
     return False
@@ -718,6 +722,9 @@ def cmd_update(os_list, lang_list, skipknown, updateonly, id):
                     gamesdb[item_idx] = item
                 else:
                     gamesdb.append(item)
+
+                if i % 5 == 0:
+                    save_manifest(gamesdb)
 
         except Exception:
             log_exception('error')
@@ -1173,4 +1180,4 @@ if __name__ == "__main__":
         raise
     except:
         log_exception('fatal...')
-        sys.exit(1)
+        s
