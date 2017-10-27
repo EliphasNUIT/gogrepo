@@ -110,8 +110,8 @@ HTTP_GAME_DOWNLOADER_THREADS = 10
 HTTP_PERM_ERRORCODES = (404, 403, 503)
 
 # Save manifest data for these os and lang combinations
-DEFAULT_OS_LIST = ['windows']
-DEFAULT_LANG_LIST = ['en']
+DEFAULT_OS_LIST = ['windows', 'linux', 'mac']
+DEFAULT_LANG_LIST = ['en', 'hu']
 
 # These file types don't have md5 data from GOG
 SKIP_MD5_FILE_EXT = ['.txt', '.zip']
@@ -149,7 +149,9 @@ VALID_OS_TYPES = ['windows', 'linux', 'mac']
 VALID_LANG_TYPES = list(LANG_TABLE.keys())
 
 ORPHAN_DIR_NAME = '!orphaned'
-ORPHAN_DIR_EXCLUDE_LIST = [ORPHAN_DIR_NAME, '!misc']
+MISC_DIR_NAME = '!misc'
+RESILIO_DIR_NAME = '!.sync'
+ORPHAN_DIR_EXCLUDE_LIST = [ORPHAN_DIR_NAME, MISC_DIR_NAME, RESILIO_DIR_NAME]
 ORPHAN_FILE_EXCLUDE_LIST = [INFO_FILENAME, SERIAL_FILENAME]
 
 def request(url, args=None, byte_range=None, retries=HTTP_RETRY_COUNT, delay=HTTP_FETCH_DELAY):
