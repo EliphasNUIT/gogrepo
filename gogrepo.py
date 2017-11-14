@@ -52,14 +52,17 @@ except ImportError:
     from io import StringIO
 
 # python 2 / 3 renames
-try: input = raw_input
-except NameError: pass
+try:
+    input = raw_input
+except NameError:
+    pass
 
 # optional imports
 try:
     from html2text import html2text
 except ImportError:
-    def html2text(x): return x
+    def html2text(x):
+        return x
 
 # lib mods
 cookiejar.MozillaCookieJar.magic_re = r'.*'  # bypass the hardcoded "Netscape HTTP Cookie File" check
@@ -99,12 +102,12 @@ GOG_ACCOUNT_URL = r'https://www.gog.com/account'
 GOG_LOGIN_URL = r'https://login.gog.com/login_check'
 
 # GOG Constants
-GOG_MEDIA_TYPE_GAME  = '1'
+GOG_MEDIA_TYPE_GAME = '1'
 GOG_MEDIA_TYPE_MOVIE = '2'
 
 # HTTP request settings
-HTTP_FETCH_DELAY = 1   # in seconds
-HTTP_RETRY_DELAY = 5   # in seconds
+HTTP_FETCH_DELAY = 1  # in seconds
+HTTP_RETRY_DELAY = 5  # in seconds
 HTTP_RETRY_COUNT = 3
 HTTP_GAME_DOWNLOADER_THREADS = 10
 HTTP_PERM_ERRORCODES = (404, 403, 503)
@@ -117,32 +120,32 @@ DEFAULT_LANG_LIST = ['en', 'hu']
 SKIP_MD5_FILE_EXT = ['.txt', '.zip']
 
 # Language table that maps two letter language to their unicode gogapi json name
-LANG_TABLE = {'en': u'English',   # English
+LANG_TABLE = {'en': u'English',  # English
               'bl': u'\u0431\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u0438',  # Bulgarian
-              'ru': u'\u0440\u0443\u0441\u0441\u043a\u0438\u0439',              # Russian
-              'gk': u'\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac',        # Greek
-              'sb': u'\u0421\u0440\u043f\u0441\u043a\u0430',                    # Serbian
-              'ar': u'\u0627\u0644\u0639\u0631\u0628\u064a\u0629',              # Arabic
+              'ru': u'\u0440\u0443\u0441\u0441\u043a\u0438\u0439',  # Russian
+              'gk': u'\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac',  # Greek
+              'sb': u'\u0421\u0440\u043f\u0441\u043a\u0430',  # Serbian
+              'ar': u'\u0627\u0644\u0639\u0631\u0628\u064a\u0629',  # Arabic
               'br': u'Portugu\xeas do Brasil',  # Brazilian Portuguese
-              'jp': u'\u65e5\u672c\u8a9e',      # Japanese
-              'ko': u'\ud55c\uad6d\uc5b4',      # Korean
-              'fr': u'fran\xe7ais',             # French
-              'cn': u'\u4e2d\u6587',            # Chinese
-              'cz': u'\u010desk\xfd',           # Czech
-              'hu': u'magyar',                  # Hungarian
-              'pt': u'portugu\xeas',            # Portuguese
-              'tr': u'T\xfcrk\xe7e',            # Turkish
-              'sk': u'slovensk\xfd',            # Slovak
-              'nl': u'nederlands',              # Dutch
-              'ro': u'rom\xe2n\u0103',          # Romanian
-              'es': u'espa\xf1ol',      # Spanish
-              'pl': u'polski',          # Polish
-              'it': u'italiano',        # Italian
-              'de': u'Deutsch',         # German
-              'da': u'Dansk',           # Danish
-              'sv': u'svenska',         # Swedish
-              'fi': u'Suomi',           # Finnish
-              'no': u'norsk',           # Norsk
+              'jp': u'\u65e5\u672c\u8a9e',  # Japanese
+              'ko': u'\ud55c\uad6d\uc5b4',  # Korean
+              'fr': u'fran\xe7ais',  # French
+              'cn': u'\u4e2d\u6587',  # Chinese
+              'cz': u'\u010desk\xfd',  # Czech
+              'hu': u'magyar',  # Hungarian
+              'pt': u'portugu\xeas',  # Portuguese
+              'tr': u'T\xfcrk\xe7e',  # Turkish
+              'sk': u'slovensk\xfd',  # Slovak
+              'nl': u'nederlands',  # Dutch
+              'ro': u'rom\xe2n\u0103',  # Romanian
+              'es': u'espa\xf1ol',  # Spanish
+              'pl': u'polski',  # Polish
+              'it': u'italiano',  # Italian
+              'de': u'Deutsch',  # German
+              'da': u'Dansk',  # Danish
+              'sv': u'svenska',  # Swedish
+              'fi': u'Suomi',  # Finnish
+              'no': u'norsk',  # Norsk
               }
 
 VALID_OS_TYPES = ['windows', 'linux', 'mac']
@@ -154,6 +157,7 @@ RESILIO_DIR_NAME = '!.sync'
 ORPHAN_DIR_EXCLUDE_LIST = [ORPHAN_DIR_NAME, MISC_DIR_NAME, RESILIO_DIR_NAME]
 ORPHAN_FILE_EXCLUDE_LIST = [INFO_FILENAME, SERIAL_FILENAME]
 
+
 def request(url, args=None, byte_range=None, retries=HTTP_RETRY_COUNT, delay=HTTP_FETCH_DELAY):
     """Performs web request to url with optional retries, delay, and byte range.
     """
@@ -163,7 +167,7 @@ def request(url, args=None, byte_range=None, retries=HTTP_RETRY_COUNT, delay=HTT
     try:
         if args is not None:
             enc_args = urlencode(args)
-            enc_args = enc_args.encode('ascii') # needed for Python 3
+            enc_args = enc_args.encode('ascii')  # needed for Python 3
         else:
             enc_args = None
         req = Request(url, data=enc_args)
@@ -182,7 +186,7 @@ def request(url, args=None, byte_range=None, retries=HTTP_RETRY_COUNT, delay=HTT
 
         if _retry:
             warn('request failed: %s (%d retries left) -- will retry in %ds...' % (e, retries, HTTP_RETRY_DELAY))
-            return request(url=url, args=args, byte_range=byte_range, retries=retries-1, delay=HTTP_RETRY_DELAY)
+            return request(url=url, args=args, byte_range=byte_range, retries=retries - 1, delay=HTTP_RETRY_DELAY)
 
     return contextlib.closing(page)
 
@@ -199,6 +203,7 @@ class AttrDict(dict):
 
     def __setattr__(self, key, val):
         self[key] = val
+
 
 class ConditionalWriter(object):
     """File writer that only updates file on disk if contents chanaged"""
@@ -229,6 +234,7 @@ class ConditionalWriter(object):
                 with codecs.open(self._filename, 'w', 'utf-8') as overwrite:
                     tmp.seek(0)
                     shutil.copyfileobj(tmp, overwrite)
+
 
 def load_cookies():
     # try to load as default lwp format
@@ -270,7 +276,7 @@ def save_manifest(items):
         pprint.pprint(items, width=123, stream=w)
 
 
-def open_notrunc(name, bufsize=4*1024):
+def open_notrunc(name, bufsize=4 * 1024):
     flags = os.O_WRONLY | os.O_CREAT
     if hasattr(os, "O_BINARY"):
         flags |= os.O_BINARY  # windows
@@ -612,7 +618,7 @@ def cmd_update(os_list, lang_list, skipknown, updateonly, id):
 
     gamesdb = load_manifest()
 
-    api_url  = GOG_ACCOUNT_URL
+    api_url = GOG_ACCOUNT_URL
     api_url += "/getFilteredProducts"
 
     # Make convenient list of known ids
@@ -687,12 +693,12 @@ def cmd_update(os_list, lang_list, skipknown, updateonly, id):
     items_count = len(items)
     print_padding = len(str(items_count))
     if not id and not updateonly and not skipknown:
-        info('found %d games !!%s' % (items_count, '!'*int(items_count/100)))  # teehee
+        info('found %d games !!%s' % (items_count, '!' * int(items_count / 100)))  # teehee
 
     # fetch item details
     i = 0
     for item in sorted(items, key=lambda item: item.title):
-        api_url  = GOG_ACCOUNT_URL
+        api_url = GOG_ACCOUNT_URL
         api_url += "/gameDetails/{}.json".format(item.id)
 
         i += 1
@@ -788,9 +794,10 @@ def cmd_download(savedir, skipextras, skipgames, skipids, dryrun, id):
 
     # util
     def megs(b):
-        return '%.1fMB' % (b / float(1024**2))
+        return '%.1fMB' % (b / float(1024 ** 2))
+
     def gigs(b):
-        return '%.2fGB' % (b / float(1024**3))
+        return '%.2fGB' % (b / float(1024 ** 3))
 
     if id:
         id_found = False
@@ -880,7 +887,7 @@ def cmd_download(savedir, skipextras, skipgames, skipids, dryrun, id):
             info('     download   %s' % game_item.name)
             sizes[dest_file] = game_item.size
 
-            work_dict[dest_file] = (game_item.href, game_item.size, 0, game_item.size-1, dest_file)
+            work_dict[dest_file] = (game_item.href, game_item.size, 0, game_item.size - 1, dest_file)
 
     for work_item in work_dict:
         work.put(work_dict[work_item])
@@ -889,13 +896,13 @@ def cmd_download(savedir, skipextras, skipgames, skipids, dryrun, id):
         info("{} left to download".format(gigs(sum(sizes.values()))))
         return  # bail, as below just kicks off the actual downloading
 
-    info('-'*60)
+    info('-' * 60)
 
     # work item I/O loop
     def ioloop(tid, path, page, out):
         sz, t0 = True, time.time()
         while sz:
-            buf = page.read(4*1024)
+            buf = page.read(4 * 1024)
             t = time.time()
             out.write(buf)
             sz, dt, t0 = len(buf), t - t0, t
@@ -913,7 +920,8 @@ def cmd_download(savedir, skipextras, skipgames, skipids, dryrun, id):
                 with lock:
                     if not os.path.isdir(dest_dir):
                         os.makedirs(dest_dir)
-                    if os.path.exists(path) and os.path.getsize(path) > sz:  # if needed, truncate file if ours is larger than expected size
+                    if os.path.exists(path) and os.path.getsize(
+                            path) > sz:  # if needed, truncate file if ours is larger than expected size
                         with open_notrunc(path) as f:
                             f.truncate(sz)
                 with open_notrunc(path) as out:
@@ -948,9 +956,10 @@ def cmd_download(savedir, skipextras, skipgames, skipids, dryrun, id):
                 for tid, (sz, t) in flowrates:
                     szs, ts = flows.get(tid, (0, 0))
                     flows[tid] = sz + szs, t + ts
-                bps = sum(szs/ts for szs, ts in list(flows.values()) if ts > 0)
+                bps = sum(szs / ts for szs, ts in list(flows.values()) if ts > 0)
                 info('%10s %8.1fMB/s %2dx  %s' % \
-                    (megs(sizes[path]), bps / 1024.0**2, len(flows), "%s/%s" % (os.path.basename(os.path.split(path)[0]), os.path.split(path)[1])))
+                     (megs(sizes[path]), bps / 1024.0 ** 2, len(flows),
+                      "%s/%s" % (os.path.basename(os.path.split(path)[0]), os.path.split(path)[1])))
             if len(rates) != 0:  # only update if there's change
                 info('%s remaining' % gigs(left))
             rates.clear()
