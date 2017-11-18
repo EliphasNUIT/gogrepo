@@ -106,7 +106,7 @@ GOG_MEDIA_TYPE_MOVIE = '2'
 HTTP_FETCH_DELAY = 1   # in seconds
 HTTP_RETRY_DELAY = 5   # in seconds
 HTTP_RETRY_COUNT = 3
-HTTP_GAME_DOWNLOADER_THREADS = 4
+HTTP_GAME_DOWNLOADER_THREADS = 1
 HTTP_PERM_ERRORCODES = (404, 403, 503)
 
 # Save manifest data for these os and lang combinations
