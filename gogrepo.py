@@ -685,11 +685,16 @@ def cmd_update(os_list, lang_list, skipknown, updateonly, id):
 
     # fetch item details
     i = 0
+    skip_list = ['x_tension','x_beyond_the_frontier','x3_terran_war_pack','x3_reunion','x2_the_threat','wasteland_2_kickstarter','tales_from_the_borderlands','walking_dead_season_1_the','the_witcher_3_wild_hunt_game','dungeons_dragons_dragonshard','deadlight_directors_cut','the_temple_of_elemental_evil','the_chronicles_of_riddick_assault_on_dark_athena','system_shock_2','stasis','divinity_original_sin','darksiders_ii','expeditions_conquistador', 'dex', 'bio_menace', 'banished', 'oddworld_abes_oddysee', 'mdk', 'giants_citizen_kabuto','gabriel_knight_sins_of_the_fathers_20th_anniversary_edition', 'spelunky']
     for item in sorted(items, key=lambda item: item.title):
         api_url  = GOG_ACCOUNT_URL
         api_url += "/gameDetails/{}.json".format(item.id)
 
         i += 1
+        if item.title in skip_list :
+            info("(%*d / %d) not fetching game details for %s..." % (print_padding, i, items_count, item.title))
+            continue
+
         info("(%*d / %d) fetching game details for %s..." % (print_padding, i, items_count, item.title))
 
         try:
