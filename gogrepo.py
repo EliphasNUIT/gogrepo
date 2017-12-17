@@ -52,8 +52,10 @@ except ImportError:
     from io import StringIO
 
 # python 2 / 3 renames
-try: input = raw_input
-except NameError: pass
+try:
+    input = raw_input
+except NameError:
+    pass
 
 # optional imports
 try:
@@ -62,10 +64,12 @@ except ImportError:
     def html2text(x): return x
 
 # lib mods
-cookiejar.MozillaCookieJar.magic_re = r'.*'  # bypass the hardcoded "Netscape HTTP Cookie File" check
+# bypass the hardcoded "Netscape HTTP Cookie File" check
+cookiejar.MozillaCookieJar.magic_re = r'.*'
 
 # configure logging
-logFormatter = logging.Formatter("%(asctime)s | %(message)s", datefmt='%H:%M:%S')
+logFormatter = logging.Formatter(
+    "%(asctime)s | %(message)s", datefmt='%H:%M:%S')
 rootLogger = logging.getLogger('ws')
 rootLogger.setLevel(logging.DEBUG)
 consoleHandler = logging.StreamHandler(sys.stdout)
@@ -99,7 +103,7 @@ GOG_ACCOUNT_URL = r'https://www.gog.com/account'
 GOG_LOGIN_URL = r'https://login.gog.com/login_check'
 
 # GOG Constants
-GOG_MEDIA_TYPE_GAME  = '1'
+GOG_MEDIA_TYPE_GAME = '1'
 GOG_MEDIA_TYPE_MOVIE = '2'
 
 # HTTP request settings
@@ -152,6 +156,7 @@ ORPHAN_DIR_NAME = '!orphaned'
 ORPHAN_DIR_EXCLUDE_LIST = [ORPHAN_DIR_NAME, '!misc']
 ORPHAN_FILE_EXCLUDE_LIST = [INFO_FILENAME, SERIAL_FILENAME]
 
+
 def request(url, args=None, byte_range=None, retries=HTTP_RETRY_COUNT, delay=HTTP_FETCH_DELAY):
     """Performs web request to url with optional retries, delay, and byte range.
     """
@@ -161,7 +166,7 @@ def request(url, args=None, byte_range=None, retries=HTTP_RETRY_COUNT, delay=HTT
     try:
         if args is not None:
             enc_args = urlencode(args)
-            enc_args = enc_args.encode('ascii') # needed for Python 3
+            enc_args = enc_args.encode('ascii')  # needed for Python 3
         else:
             enc_args = None
         req = Request(url, data=enc_args)
@@ -179,8 +184,9 @@ def request(url, args=None, byte_range=None, retries=HTTP_RETRY_COUNT, delay=HTT
             raise
 
         if _retry:
-            warn('request failed: %s (%d retries left) -- will retry in %ds...' % (e, retries, HTTP_RETRY_DELAY))
-            return request(url=url, args=args, byte_range=byte_range, retries=retries-1, delay=HTTP_RETRY_DELAY)
+            warn('request failed: %s (%d retries left) -- will retry in %ds...' %
+                 (e, retries, HTTP_RETRY_DELAY))
+            return request(url=url, args=args, byte_range=byte_range, retries=retries - 1, delay=HTTP_RETRY_DELAY)
 
     return contextlib.closing(page)
 
@@ -197,6 +203,7 @@ class AttrDict(dict):
 
     def __setattr__(self, key, val):
         self[key] = val
+
 
 class ConditionalWriter(object):
     """File writer that only updates file on disk if contents chanaged"""
@@ -227,6 +234,7 @@ class ConditionalWriter(object):
                 with codecs.open(self._filename, 'w', 'utf-8') as overwrite:
                     tmp.seek(0)
                     shutil.copyfileobj(tmp, overwrite)
+
 
 def load_cookies():
     # try to load as default lwp format
@@ -268,7 +276,7 @@ def save_manifest(items):
         pprint.pprint(items, width=123, stream=w)
 
 
-def open_notrunc(name, bufsize=4*1024):
+def open_notrunc(name, bufsize=4 * 1024):
     flags = os.O_WRONLY | os.O_CREAT
     if hasattr(os, "O_BINARY"):
         flags |= os.O_BINARY  # windows
@@ -360,7 +368,8 @@ def fetch_file_info(d, fetch_md5):
                 tmp_md5_url = page.geturl().replace('?', '.xml?')
                 try:
                     with request(tmp_md5_url) as page:
-                        shelf_etree = xml.etree.ElementTree.parse(page).getroot()
+                        shelf_etree = xml.etree.ElementTree.parse(
+                            page).getroot()
                         d.md5 = shelf_etree.attrib['md5']
                 except HTTPError as e:
                     if e.code == 404:
@@ -368,7 +377,8 @@ def fetch_file_info(d, fetch_md5):
                     else:
                         raise
                 except xml.etree.ElementTree.ParseError:
-                    warn('xml parsing error occurred trying to get md5 data for {}'.format(d.name))
+                    warn(
+                        'xml parsing error occurred trying to get md5 data for {}'.format(d.name))
 
 
 def filter_downloads(out_list, downloads_list, lang_list, os_list):
@@ -439,59 +449,94 @@ def filter_dlcs(item, dlc_list, lang_list, os_list):
     dlcs can contain dlcs in a recursive fashion, and oddly GOG does do this for some titles.
     """
     for dlc_dict in dlc_list:
-        filter_downloads(item.downloads, dlc_dict['downloads'], lang_list, os_list)
+        filter_downloads(
+            item.downloads, dlc_dict['downloads'], lang_list, os_list)
         filter_extras(item.extras, dlc_dict['extras'])
         filter_dlcs(item, dlc_dict['dlcs'], lang_list, os_list)  # recursive
 
 
 def process_argv(argv):
-    p1 = argparse.ArgumentParser(description='%s (%s)' % (__appname__, __url__), add_help=False)
+    p1 = argparse.ArgumentParser(description='%s (%s)' % (
+        __appname__, __url__), add_help=False)
     sp1 = p1.add_subparsers(help='commands', dest='cmd', title='commands')
 
-    g1 = sp1.add_parser('login', help='Login to GOG and save a local copy of your authenticated cookie')
-    g1.add_argument('username', action='store', help='GOG username/email', nargs='?', default=None)
-    g1.add_argument('password', action='store', help='GOG password', nargs='?', default=None)
+    g1 = sp1.add_parser(
+        'login', help='Login to GOG and save a local copy of your authenticated cookie')
+    g1.add_argument('username', action='store',
+                    help='GOG username/email', nargs='?', default=None)
+    g1.add_argument('password', action='store',
+                    help='GOG password', nargs='?', default=None)
 
-    g1 = sp1.add_parser('update', help='Update locally saved game manifest from GOG server')
-    g1.add_argument('-os', action='store', help='operating system(s)', nargs='*', default=DEFAULT_OS_LIST)
-    g1.add_argument('-lang', action='store', help='game language(s)', nargs='*', default=DEFAULT_LANG_LIST)
+    g1 = sp1.add_parser(
+        'update', help='Update locally saved game manifest from GOG server')
+    g1.add_argument('-os', action='store', help='operating system(s)',
+                    nargs='*', default=DEFAULT_OS_LIST)
+    g1.add_argument('-lang', action='store', help='game language(s)',
+                    nargs='*', default=DEFAULT_LANG_LIST)
     g2 = g1.add_mutually_exclusive_group()  # below are mutually exclusive
-    g2.add_argument('-skipknown', action='store_true', help='skip games already known by manifest')
-    g2.add_argument('-updateonly', action='store_true', help='only games marked with the update tag')
-    g2.add_argument('-id', action='store', help='id/dirname of a specific game to update')
+    g2.add_argument('-skipknown', action='store_true',
+                    help='skip games already known by manifest')
+    g2.add_argument('-updateonly', action='store_true',
+                    help='only games marked with the update tag')
+    g2.add_argument('-id', action='store',
+                    help='id/dirname of a specific game to update')
 
-    g1 = sp1.add_parser('download', help='Download all your GOG games and extra files')
-    g1.add_argument('savedir', action='store', help='directory to save downloads to', nargs='?', default='.')
-    g1.add_argument('-dryrun', action='store_true', help='display, but skip downloading of any files')
-    g1.add_argument('-skipextras', action='store_true', help='skip downloading of any GOG extra files')
-    g1.add_argument('-skipgames', action='store_true', help='skip downloading of any GOG game files')
-    g1.add_argument('-id', action='store', help='id of the game in the manifest to download')
+    g1 = sp1.add_parser(
+        'download', help='Download all your GOG games and extra files')
+    g1.add_argument('savedir', action='store',
+                    help='directory to save downloads to', nargs='?', default='.')
+    g1.add_argument('-dryrun', action='store_true',
+                    help='display, but skip downloading of any files')
+    g1.add_argument('-skipextras', action='store_true',
+                    help='skip downloading of any GOG extra files')
+    g1.add_argument('-skipgames', action='store_true',
+                    help='skip downloading of any GOG game files')
+    g1.add_argument('-id', action='store',
+                    help='id of the game in the manifest to download')
     g1.add_argument('-wait', action='store', type=float,
                     help='wait this long in hours before starting', default=0.0)  # sleep in hr
-    g1.add_argument('-skipids', action='store', help='id[s] of the game[s] in the manifest to NOT download')
+    g1.add_argument('-skipids', action='store',
+                    help='id[s] of the game[s] in the manifest to NOT download')
 
-    g1 = sp1.add_parser('import', help='Import files with any matching MD5 checksums found in manifest')
-    g1.add_argument('src_dir', action='store', help='source directory to import games from')
-    g1.add_argument('dest_dir', action='store', help='directory to copy and name imported files to')
+    g1 = sp1.add_parser(
+        'import', help='Import files with any matching MD5 checksums found in manifest')
+    g1.add_argument('src_dir', action='store',
+                    help='source directory to import games from')
+    g1.add_argument('dest_dir', action='store',
+                    help='directory to copy and name imported files to')
 
-    g1 = sp1.add_parser('backup', help='Perform an incremental backup to specified directory')
-    g1.add_argument('src_dir', action='store', help='source directory containing gog items')
-    g1.add_argument('dest_dir', action='store', help='destination directory to backup files to')
+    g1 = sp1.add_parser(
+        'backup', help='Perform an incremental backup to specified directory')
+    g1.add_argument('src_dir', action='store',
+                    help='source directory containing gog items')
+    g1.add_argument('dest_dir', action='store',
+                    help='destination directory to backup files to')
 
-    g1 = sp1.add_parser('verify', help='Scan your downloaded GOG files and verify their size, MD5, and zip integrity')
-    g1.add_argument('gamedir', action='store', help='directory containing games to verify', nargs='?', default='.')
-    g1.add_argument('-id', action='store', help='id of a specific game to verify')
-    g1.add_argument('-skipmd5', action='store_true', help='do not perform MD5 check')
-    g1.add_argument('-skipsize', action='store_true', help='do not perform size check')
-    g1.add_argument('-skipzip', action='store_true', help='do not perform zip integrity check')
-    g1.add_argument('-delete', action='store_true', help='delete any files which fail integrity test')
+    g1 = sp1.add_parser(
+        'verify', help='Scan your downloaded GOG files and verify their size, MD5, and zip integrity')
+    g1.add_argument('gamedir', action='store',
+                    help='directory containing games to verify', nargs='?', default='.')
+    g1.add_argument('-id', action='store',
+                    help='id of a specific game to verify')
+    g1.add_argument('-skipmd5', action='store_true',
+                    help='do not perform MD5 check')
+    g1.add_argument('-skipsize', action='store_true',
+                    help='do not perform size check')
+    g1.add_argument('-skipzip', action='store_true',
+                    help='do not perform zip integrity check')
+    g1.add_argument('-delete', action='store_true',
+                    help='delete any files which fail integrity test')
 
-    g1 = sp1.add_parser('clean', help='Clean your games directory of files not known by manifest')
-    g1.add_argument('cleandir', action='store', help='root directory containing gog games to be cleaned')
-    g1.add_argument('-dryrun', action='store_true', help='do not move files, only display what would be cleaned')
+    g1 = sp1.add_parser(
+        'clean', help='Clean your games directory of files not known by manifest')
+    g1.add_argument('cleandir', action='store',
+                    help='root directory containing gog games to be cleaned')
+    g1.add_argument('-dryrun', action='store_true',
+                    help='do not move files, only display what would be cleaned')
 
     g1 = p1.add_argument_group('other')
-    g1.add_argument('-h', '--help', action='help', help='show help message and exit')
+    g1.add_argument('-h', '--help', action='help',
+                    help='show help message and exit')
     g1.add_argument('-v', '--version', action='version', help='show version number and exit',
                     version="%s (version %s)" % (__appname__, __version__))
 
@@ -501,12 +546,14 @@ def process_argv(argv):
     if args.cmd == 'update':
         for lang in args.lang:  # validate the language
             if lang not in VALID_LANG_TYPES:
-                error('error: specified language "%s" is not one of the valid languages %s' % (lang, VALID_LANG_TYPES))
+                error('error: specified language "%s" is not one of the valid languages %s' % (
+                    lang, VALID_LANG_TYPES))
                 raise SystemExit(1)
 
         for os_type in args.os:  # validate the os type
             if os_type not in VALID_OS_TYPES:
-                error('error: specified os "%s" is not one of the valid os types %s' % (os_type, VALID_OS_TYPES))
+                error('error: specified os "%s" is not one of the valid os types %s' % (
+                    os_type, VALID_OS_TYPES))
                 raise SystemExit(1)
 
     return args
@@ -551,7 +598,8 @@ def cmd_login(user, passwd):
         etree = html5lib.parse(page, namespaceHTMLElements=False)
         # Bail if we find a request for a reCAPTCHA
         if len(etree.findall('.//div[@class="g-recaptcha"]')) > 0:
-            error("cannot continue, gog is asking for a reCAPTCHA :(  try again in a few minutes.")
+            error(
+                "cannot continue, gog is asking for a reCAPTCHA :(  try again in a few minutes.")
             return
         for elm in etree.findall('.//input'):
             if elm.attrib['id'] == 'login__token':
@@ -575,7 +623,8 @@ def cmd_login(user, passwd):
 
     # perform two-step if needed
     if login_data['two_step_url'] is not None:
-        login_data['two_step_security_code'] = input("enter two-step security code: ")
+        login_data['two_step_security_code'] = input(
+            "enter two-step security code: ")
 
         # Send the security code back to GOG
         with request(login_data['two_step_url'], delay=0,
@@ -606,7 +655,7 @@ def cmd_update(os_list, lang_list, skipknown, updateonly, id):
 
     gamesdb = load_manifest()
 
-    api_url  = GOG_ACCOUNT_URL
+    api_url = GOG_ACCOUNT_URL
     api_url += "/getFilteredProducts"
 
     # Make convenient list of known ids
@@ -621,7 +670,8 @@ def cmd_update(os_list, lang_list, skipknown, updateonly, id):
         if i == 1:
             info('fetching game product data (page %d)...' % i)
         else:
-            info('fetching game product data (page %d / %d)...' % (i, json_data['totalPages']))
+            info('fetching game product data (page %d / %d)...' %
+                 (i, json_data['totalPages']))
         with request(api_url, args={'mediaType': media_type,
                                     'sortBy': 'title',  # sort order
                                     'page': str(i)}, delay=0) as data_request:
@@ -647,10 +697,12 @@ def cmd_update(os_list, lang_list, skipknown, updateonly, id):
                 item.store_url = item_json_data['url']
                 item.media_type = media_type
                 item.rating = item_json_data['rating']
-                item.has_updates = bool(item_json_data['updates']) or bool(item_json_data['isNew'])
+                item.has_updates = bool(item_json_data['updates']) or bool(
+                    item_json_data['isNew'])
 
                 if id:
-                    if item.title == id or str(item.id) == id:  # support by game title or gog id
+                    # support by game title or gog id
+                    if item.title == id or str(item.id) == id:
                         info('found "{}" in product data!'.format(item.title))
                         items.append(item)
                         done = True
@@ -681,21 +733,19 @@ def cmd_update(os_list, lang_list, skipknown, updateonly, id):
     items_count = len(items)
     print_padding = len(str(items_count))
     if not id and not updateonly and not skipknown:
-        info('found %d games !!%s' % (items_count, '!'*int(items_count/100)))  # teehee
+        info('found %d games !!%s' %
+             (items_count, '!' * int(items_count / 100)))  # teehee
 
     # fetch item details
     i = 0
-    skip_list = ['x_tension','x_beyond_the_frontier','x3_terran_war_pack','x3_reunion','x2_the_threat','wasteland_2_kickstarter','tales_from_the_borderlands','walking_dead_season_1_the','the_witcher_3_wild_hunt_game','dungeons_dragons_dragonshard','deadlight_directors_cut','the_temple_of_elemental_evil','the_chronicles_of_riddick_assault_on_dark_athena','system_shock_2','stasis','divinity_original_sin','darksiders_ii','expeditions_conquistador', 'dex', 'bio_menace', 'banished', 'oddworld_abes_oddysee', 'mdk', 'giants_citizen_kabuto','gabriel_knight_sins_of_the_fathers_20th_anniversary_edition', 'spelunky']
     for item in sorted(items, key=lambda item: item.title):
-        api_url  = GOG_ACCOUNT_URL
+        api_url = GOG_ACCOUNT_URL
         api_url += "/gameDetails/{}.json".format(item.id)
 
         i += 1
-        if item.title in skip_list :
-            info("(%*d / %d) not fetching game details for %s..." % (print_padding, i, items_count, item.title))
-            continue
 
-        info("(%*d / %d) fetching game details for %s..." % (print_padding, i, items_count, item.title))
+        info("(%*d / %d) fetching game details for %s..." %
+             (print_padding, i, items_count, item.title))
 
         try:
             with request(api_url) as data_request:
@@ -712,7 +762,8 @@ def cmd_update(os_list, lang_list, skipknown, updateonly, id):
                 item.extras = []
 
                 # parse json data for downloads/extras/dlcs
-                filter_downloads(item.downloads, item_json_data['downloads'], lang_list, os_list)
+                filter_downloads(
+                    item.downloads, item_json_data['downloads'], lang_list, os_list)
                 filter_extras(item.extras, item_json_data['extras'])
                 filter_dlcs(item, item_json_data['dlcs'], lang_list, os_list)
 
@@ -765,7 +816,8 @@ def cmd_import(src_dir, dest_dir):
             info('found a match! [%s] -> %s' % (h, fname))
             if os.path.isfile(dest_file):
                 if h == hashfile(dest_file):
-                    info('destination file already exists with the same md5 value.  skipping copy.')
+                    info(
+                        'destination file already exists with the same md5 value.  skipping copy.')
                     continue
             info("copying to %s..." % dest_file)
             if not os.path.isdir(src_dir):
@@ -785,6 +837,7 @@ def cmd_download(savedir, skipextras, skipgames, skipids, dryrun, id):
     # util
     def megs(b):
         return '%.1fMB' % (b / float(1024**2))
+
     def gigs(b):
         return '%.2fGB' % (b / float(1024**3))
 
@@ -821,32 +874,46 @@ def cmd_download(savedir, skipextras, skipgames, skipids, dryrun, id):
         # Generate and save a game info text file
         if not dryrun:
             with ConditionalWriter(os.path.join(item_homedir, INFO_FILENAME)) as fd_info:
-                fd_info.write(u'{0}-- {1} --{0}{0}'.format(os.linesep, item.long_title))
-                fd_info.write(u'title.......... {}{}'.format(item.title, os.linesep))
+                fd_info.write(
+                    u'{0}-- {1} --{0}{0}'.format(os.linesep, item.long_title))
+                fd_info.write(u'title.......... {}{}'.format(
+                    item.title, os.linesep))
                 if item.genre:
-                    fd_info.write(u'genre.......... {}{}'.format(item.genre, os.linesep))
-                fd_info.write(u'game id........ {}{}'.format(item.id, os.linesep))
-                fd_info.write(u'url............ {}{}'.format(GOG_HOME_URL + item.store_url, os.linesep))
+                    fd_info.write(u'genre.......... {}{}'.format(
+                        item.genre, os.linesep))
+                fd_info.write(u'game id........ {}{}'.format(
+                    item.id, os.linesep))
+                fd_info.write(u'url............ {}{}'.format(
+                    GOG_HOME_URL + item.store_url, os.linesep))
                 if item.rating > 0:
-                    fd_info.write(u'user rating.... {}%{}'.format(item.rating * 2, os.linesep))
+                    fd_info.write(u'user rating.... {}%{}'.format(
+                        item.rating * 2, os.linesep))
                 if item.release_timestamp > 0:
-                    rel_date = datetime.datetime.fromtimestamp(item.release_timestamp).strftime('%B %d, %Y')
-                    fd_info.write(u'release date... {}{}'.format(rel_date, os.linesep))
+                    rel_date = datetime.datetime.fromtimestamp(
+                        item.release_timestamp).strftime('%B %d, %Y')
+                    fd_info.write(u'release date... {}{}'.format(
+                        rel_date, os.linesep))
                 if hasattr(item, 'gog_messages') and item.gog_messages:
                     fd_info.write(u'{0}gog messages...:{0}'.format(os.linesep))
                     for gog_msg in item.gog_messages:
-                        fd_info.write(u'{0}{1}{0}'.format(os.linesep, html2text(gog_msg).strip()))
+                        fd_info.write(u'{0}{1}{0}'.format(
+                            os.linesep, html2text(gog_msg).strip()))
                 fd_info.write(u'{0}game items.....:{0}{0}'.format(os.linesep))
                 for game_item in item.downloads:
-                    fd_info.write(u'    [{}] -- {}{}'.format(game_item.name, game_item.desc, os.linesep))
+                    fd_info.write(
+                        u'    [{}] -- {}{}'.format(game_item.name, game_item.desc, os.linesep))
                     if game_item.version:
-                        fd_info.write(u'        version: {}{}'.format(game_item.version, os.linesep))
+                        fd_info.write(u'        version: {}{}'.format(
+                            game_item.version, os.linesep))
                 if len(item.extras) > 0:
-                    fd_info.write(u'{0}extras.........:{0}{0}'.format(os.linesep))
+                    fd_info.write(
+                        u'{0}extras.........:{0}{0}'.format(os.linesep))
                     for game_item in item.extras:
-                        fd_info.write(u'    [{}] -- {}{}'.format(game_item.name, game_item.desc, os.linesep))
+                        fd_info.write(
+                            u'    [{}] -- {}{}'.format(game_item.name, game_item.desc, os.linesep))
                 if item.changelog:
-                    fd_info.write(u'{0}changelog......:{0}{0}'.format(os.linesep))
+                    fd_info.write(
+                        u'{0}changelog......:{0}{0}'.format(os.linesep))
                     fd_info.write(html2text(item.changelog).strip())
                     fd_info.write(os.linesep)
         # Generate and save a game serial text file
@@ -868,7 +935,8 @@ def cmd_download(savedir, skipextras, skipgames, skipids, dryrun, id):
                     warn('     unknown    %s has no size info.  skipping')
                     continue
                 elif game_item.size != os.path.getsize(dest_file):
-                    warn('     fail       %s has incorrect size.' % game_item.name)
+                    warn('     fail       %s has incorrect size.' %
+                         game_item.name)
                 else:
                     info('     pass       %s' % game_item.name)
                     continue  # move on to next game item
@@ -876,7 +944,8 @@ def cmd_download(savedir, skipextras, skipgames, skipids, dryrun, id):
             info('     download   %s' % game_item.name)
             sizes[dest_file] = game_item.size
 
-            work_dict[dest_file] = (game_item.href, game_item.size, 0, game_item.size-1, dest_file)
+            work_dict[dest_file] = (
+                game_item.href, game_item.size, 0, game_item.size - 1, dest_file)
 
     for work_item in work_dict:
         work.put(work_dict[work_item])
@@ -885,13 +954,13 @@ def cmd_download(savedir, skipextras, skipgames, skipids, dryrun, id):
         info("{} left to download".format(gigs(sum(sizes.values()))))
         return  # bail, as below just kicks off the actual downloading
 
-    info('-'*60)
+    info('-' * 60)
 
     # work item I/O loop
     def ioloop(tid, path, page, out):
         sz, t0 = True, time.time()
         while sz:
-            buf = page.read(4*1024)
+            buf = page.read(4 * 1024)
             t = time.time()
             out.write(buf)
             sz, dt, t0 = len(buf), t - t0, t
@@ -909,7 +978,8 @@ def cmd_download(savedir, skipextras, skipgames, skipids, dryrun, id):
                 with lock:
                     if not os.path.isdir(dest_dir):
                         os.makedirs(dest_dir)
-                    if os.path.exists(path) and os.path.getsize(path) > sz:  # if needed, truncate file if ours is larger than expected size
+                    # if needed, truncate file if ours is larger than expected size
+                    if os.path.exists(path) and os.path.getsize(path) > sz:
                         with open_notrunc(path) as f:
                             f.truncate(sz)
                 with open_notrunc(path) as out:
@@ -928,7 +998,8 @@ def cmd_download(savedir, skipextras, skipgames, skipids, dryrun, id):
                                 ioloop(tid, path, page, out)
                                 assert out.tell() == end + 1
                     except HTTPError as e:
-                        error("failed to download %s, byte_range=%s" % (os.path.basename(path), str(se)))
+                        error("failed to download %s, byte_range=%s" %
+                              (os.path.basename(path), str(se)))
             except IOError as e:
                 with lock:
                     print('!', path, file=sys.stderr)
@@ -944,9 +1015,10 @@ def cmd_download(savedir, skipextras, skipgames, skipids, dryrun, id):
                 for tid, (sz, t) in flowrates:
                     szs, ts = flows.get(tid, (0, 0))
                     flows[tid] = sz + szs, t + ts
-                bps = sum(szs/ts for szs, ts in list(flows.values()) if ts > 0)
-                info('%10s %8.1fMB/s %2dx  %s' % \
-                    (megs(sizes[path]), bps / 1024.0**2, len(flows), "%s/%s" % (os.path.basename(os.path.split(path)[0]), os.path.split(path)[1])))
+                bps = sum(szs / ts for szs,
+                          ts in list(flows.values()) if ts > 0)
+                info('%10s %8.1fMB/s %2dx  %s' %
+                     (megs(sizes[path]), bps / 1024.0**2, len(flows), "%s/%s" % (os.path.basename(os.path.split(path)[0]), os.path.split(path)[1])))
             if len(rates) != 0:  # only update if there's change
                 info('%s remaining' % gigs(left))
             rates.clear()
@@ -1001,7 +1073,8 @@ def cmd_backup(src_dir, dest_dir):
         if touched and os.path.isdir(dest_game_dir):
             for extra_file in [INFO_FILENAME, SERIAL_FILENAME]:
                 if os.path.exists(os.path.join(src_game_dir, extra_file)):
-                    shutil.copy(os.path.join(src_game_dir, extra_file), dest_game_dir)
+                    shutil.copy(os.path.join(
+                        src_game_dir, extra_file), dest_game_dir)
 
 
 def cmd_verify(gamedir, check_md5, check_filesize, check_zips, delete_on_fail, id):
@@ -1033,7 +1106,8 @@ def cmd_verify(gamedir, check_md5, check_filesize, check_zips, delete_on_fail, i
     for game in games_to_check:
         for itm in game.downloads + game.extras:
             if itm.name is None:
-                warn('no known filename for "%s (%s)"' % (game.title, itm.desc))
+                warn('no known filename for "%s (%s)"' %
+                     (game.title, itm.desc))
                 continue
 
             item_count += 1
@@ -1117,20 +1191,23 @@ def cmd_clean(cleandir, dryrun):
                     if os.path.isdir(os.path.join(cleandir, cur_dir, cur_dir_file)):
                         continue  # leave subdirs alone
                     if cur_dir_file not in expected_filenames and cur_dir_file not in ORPHAN_FILE_EXCLUDE_LIST:
-                        info("orphaning file '{}'".format(os.path.join(cur_dir, cur_dir_file)))
+                        info("orphaning file '{}'".format(
+                            os.path.join(cur_dir, cur_dir_file)))
                         have_cleaned = True
                         dest_dir = os.path.join(orphan_root_dir, cur_dir)
                         if not os.path.isdir(dest_dir):
                             if not dryrun:
                                 os.makedirs(dest_dir)
-                        file_to_move = os.path.join(cleandir, cur_dir, cur_dir_file)
+                        file_to_move = os.path.join(
+                            cleandir, cur_dir, cur_dir_file)
                         total_size += os.path.getsize(file_to_move)
                         if not dryrun:
                             shutil.move(file_to_move, dest_dir)
 
     if have_cleaned:
         info('')
-        info('total size of newly orphaned files: {}'.format(pretty_size(total_size)))
+        info('total size of newly orphaned files: {}'.format(
+            pretty_size(total_size)))
         if not dryrun:
             info('orphaned items moved to: {}'.format(orphan_root_dir))
     else:
@@ -1144,19 +1221,22 @@ def main(args):
         cmd_login(args.username, args.password)
         return  # no need to see time stats
     elif args.cmd == 'update':
-        cmd_update(args.os, args.lang, args.skipknown, args.updateonly, args.id)
+        cmd_update(args.os, args.lang, args.skipknown,
+                   args.updateonly, args.id)
     elif args.cmd == 'download':
         if args.wait > 0.0:
             info('sleeping for %.2fhr...' % args.wait)
             time.sleep(args.wait * 60 * 60)
-        cmd_download(args.savedir, args.skipextras, args.skipgames, args.skipids, args.dryrun, args.id)
+        cmd_download(args.savedir, args.skipextras, args.skipgames,
+                     args.skipids, args.dryrun, args.id)
     elif args.cmd == 'import':
         cmd_import(args.src_dir, args.dest_dir)
     elif args.cmd == 'verify':
         check_md5 = not args.skipmd5
         check_filesize = not args.skipsize
         check_zips = not args.skipzip
-        cmd_verify(args.gamedir, check_md5, check_filesize, check_zips, args.delete, args.id)
+        cmd_verify(args.gamedir, check_md5, check_filesize,
+                   check_zips, args.delete, args.id)
     elif args.cmd == 'backup':
         cmd_backup(args.src_dir, args.dest_dir)
     elif args.cmd == 'clean':
