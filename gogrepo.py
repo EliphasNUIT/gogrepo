@@ -302,10 +302,6 @@ def test_zipfile(filename):
         with zipfile.ZipFile(filename, 'r') as f:
             if f.testzip() is None:
                 return True
-    except zipfile.BadZipfile:
-        return False
-    except zipfile.LargeZipFile:
-        return False
     except:
         return False
 
