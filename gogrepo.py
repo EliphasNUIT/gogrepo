@@ -212,7 +212,6 @@ class ConditionalWriter(object):
     def __exit__(self, _exc_type, _exc_value, _traceback):
         tmp = self._buffer
         if tmp:
-            pos = tmp.tell()
             tmp.seek(0)
 
             file_changed = not os.path.exists(self._filename)
@@ -524,7 +523,6 @@ def cmd_login(user, passwd):
                   'login_token': None,
                   'two_step_url': None,
                   'two_step_token': None,
-                  'two_step_security_code': None,
                   'login_success': False,
                   }
 
@@ -575,14 +573,12 @@ def cmd_login(user, passwd):
 
     # perform two-step if needed
     if login_data['two_step_url'] is not None:
-        login_data['two_step_security_code'] = input("enter two-step security code: ")
-
         # Send the security code back to GOG
         with request(login_data['two_step_url'], delay=0,
-                     args={'second_step_authentication[token][letter_1]': login_data['two_step_security_code'][0],
-                           'second_step_authentication[token][letter_2]': login_data['two_step_security_code'][1],
-                           'second_step_authentication[token][letter_3]': login_data['two_step_security_code'][2],
-                           'second_step_authentication[token][letter_4]': login_data['two_step_security_code'][3],
+                     args={'second_step_authentication[token][letter_1]': input("enter first two-step security code: "),
+                           'second_step_authentication[token][letter_2]': input("enter second two-step security code: "),
+                           'second_step_authentication[token][letter_3]': input("enter third two-step security code: "),
+                           'second_step_authentication[token][letter_4]': input("enter fourth two-step security code: "),
                            'second_step_authentication[send]': "",
                            'second_step_authentication[_token]': login_data['two_step_token']}) as page:
             if 'on_login_success' in page.geturl():
@@ -618,6 +614,7 @@ def cmd_update(os_list, lang_list, skipknown, updateonly, id):
     done = False
     while not done:
         i += 1  # starts at page 1
+        json_data = {'totalPages':999}
         if i == 1:
             info('fetching game product data (page %d)...' % i)
         else:
