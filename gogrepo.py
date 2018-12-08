@@ -132,7 +132,7 @@ GOG_MEDIA_TYPE_GAME  = '1'
 GOG_MEDIA_TYPE_MOVIE = '2'
 
 # HTTP request settings
-HTTP_FETCH_DELAY = 1   # in seconds
+HTTP_FETCH_DELAY = 10   # in seconds
 HTTP_RETRY_DELAY = 5   # in seconds
 HTTP_RETRY_COUNT = 50
 HTTP_TIMEOUT = 30
@@ -1233,11 +1233,11 @@ def cmd_update(os_list, lang_list, skipknown, updateonly, ids, skipids,skipHidde
             item.galaxyDownloads = deDuplicateList(item.galaxyDownloads,{}) 
             
             item.sharedDownloads = [x for x in item.downloads if x in item.galaxyDownloads]
-            if (installers=='galaxy'):
+            if (installers=='standalone'):
                 item.downloads = []
             else:
                 item.downloads = [x for x in item.downloads if x not in item.sharedDownloads]
-            if (installers=='standalone'):
+            if (installers=='galaxy'):
                 item.galaxyDownloads = []
             else:        
                 item.galaxyDownloads = [x for x in item.galaxyDownloads if x not in item.sharedDownloads]
