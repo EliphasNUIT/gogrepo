@@ -37,7 +37,7 @@ try:
     import cookielib as cookiejar
     from httplib import BadStatusLine
     from urlparse import urlparse
-    from urllib import urlencode
+    from urllib import urlencode, unquote
     from urllib2 import HTTPError, URLError, HTTPCookieProcessor, build_opener, Request
     from itertools import izip_longest as zip_longest
     from StringIO import StringIO
@@ -46,7 +46,7 @@ except ImportError:
     from queue import Queue
     import http.cookiejar as cookiejar
     from http.client import BadStatusLine
-    from urllib.parse import urlparse, urlencode
+    from urllib.parse import urlparse, urlencode, unquote
     from urllib.request import HTTPCookieProcessor, HTTPError, URLError, build_opener, Request
     from itertools import zip_longest
     from io import StringIO
@@ -61,7 +61,8 @@ except NameError:
 try:
     from html2text import html2text
 except ImportError:
-    def html2text(x): return x
+    def html2text(x):
+        return x
 
 # lib mods
 # bypass the hardcoded "Netscape HTTP Cookie File" check
@@ -107,53 +108,55 @@ GOG_MEDIA_TYPE_GAME = '1'
 GOG_MEDIA_TYPE_MOVIE = '2'
 
 # HTTP request settings
-HTTP_FETCH_DELAY = 1   # in seconds
-HTTP_RETRY_DELAY = 5   # in seconds
+HTTP_FETCH_DELAY = 1  # in seconds
+HTTP_RETRY_DELAY = 5  # in seconds
 HTTP_RETRY_COUNT = 3
 HTTP_GAME_DOWNLOADER_THREADS = 1
 HTTP_PERM_ERRORCODES = (404, 403, 503)
 
 # Save manifest data for these os and lang combinations
-DEFAULT_OS_LIST = ['windows']
-DEFAULT_LANG_LIST = ['en']
+DEFAULT_OS_LIST = ['windows', 'linux', 'mac']
+DEFAULT_LANG_LIST = ['en', 'hu']
 
 # These file types don't have md5 data from GOG
 SKIP_MD5_FILE_EXT = ['.txt', '.zip']
 
 # Language table that maps two letter language to their unicode gogapi json name
-LANG_TABLE = {'en': u'English',   # English
+LANG_TABLE = {'en': u'English',  # English
               'bl': u'\u0431\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u0438',  # Bulgarian
-              'ru': u'\u0440\u0443\u0441\u0441\u043a\u0438\u0439',              # Russian
-              'gk': u'\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac',        # Greek
-              'sb': u'\u0421\u0440\u043f\u0441\u043a\u0430',                    # Serbian
-              'ar': u'\u0627\u0644\u0639\u0631\u0628\u064a\u0629',              # Arabic
+              'ru': u'\u0440\u0443\u0441\u0441\u043a\u0438\u0439',  # Russian
+              'gk': u'\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac',  # Greek
+              'sb': u'\u0421\u0440\u043f\u0441\u043a\u0430',  # Serbian
+              'ar': u'\u0627\u0644\u0639\u0631\u0628\u064a\u0629',  # Arabic
               'br': u'Portugu\xeas do Brasil',  # Brazilian Portuguese
-              'jp': u'\u65e5\u672c\u8a9e',      # Japanese
-              'ko': u'\ud55c\uad6d\uc5b4',      # Korean
-              'fr': u'fran\xe7ais',             # French
-              'cn': u'\u4e2d\u6587',            # Chinese
-              'cz': u'\u010desk\xfd',           # Czech
-              'hu': u'magyar',                  # Hungarian
-              'pt': u'portugu\xeas',            # Portuguese
-              'tr': u'T\xfcrk\xe7e',            # Turkish
-              'sk': u'slovensk\xfd',            # Slovak
-              'nl': u'nederlands',              # Dutch
-              'ro': u'rom\xe2n\u0103',          # Romanian
-              'es': u'espa\xf1ol',      # Spanish
-              'pl': u'polski',          # Polish
-              'it': u'italiano',        # Italian
-              'de': u'Deutsch',         # German
-              'da': u'Dansk',           # Danish
-              'sv': u'svenska',         # Swedish
-              'fi': u'Suomi',           # Finnish
-              'no': u'norsk',           # Norsk
+              'jp': u'\u65e5\u672c\u8a9e',  # Japanese
+              'ko': u'\ud55c\uad6d\uc5b4',  # Korean
+              'fr': u'fran\xe7ais',  # French
+              'cn': u'\u4e2d\u6587',  # Chinese
+              'cz': u'\u010desk\xfd',  # Czech
+              'hu': u'magyar',  # Hungarian
+              'pt': u'portugu\xeas',  # Portuguese
+              'tr': u'T\xfcrk\xe7e',  # Turkish
+              'sk': u'slovensk\xfd',  # Slovak
+              'nl': u'nederlands',  # Dutch
+              'ro': u'rom\xe2n\u0103',  # Romanian
+              'es': u'espa\xf1ol',  # Spanish
+              'pl': u'polski',  # Polish
+              'it': u'italiano',  # Italian
+              'de': u'Deutsch',  # German
+              'da': u'Dansk',  # Danish
+              'sv': u'svenska',  # Swedish
+              'fi': u'Suomi',  # Finnish
+              'no': u'norsk',  # Norsk
               }
 
 VALID_OS_TYPES = ['windows', 'linux', 'mac']
 VALID_LANG_TYPES = list(LANG_TABLE.keys())
 
 ORPHAN_DIR_NAME = '!orphaned'
-ORPHAN_DIR_EXCLUDE_LIST = [ORPHAN_DIR_NAME, '!misc']
+MISC_DIR_NAME = '!misc'
+RESILIO_DIR_NAME = '.sync'
+ORPHAN_DIR_EXCLUDE_LIST = [ORPHAN_DIR_NAME, MISC_DIR_NAME, RESILIO_DIR_NAME]
 ORPHAN_FILE_EXCLUDE_LIST = [INFO_FILENAME, SERIAL_FILENAME]
 
 
@@ -301,7 +304,7 @@ def test_zipfile(filename):
         with zipfile.ZipFile(filename, 'r') as f:
             if f.testzip() is None:
                 return True
-    except zipfile.BadZipfile:
+    except:
         return False
 
     return False
@@ -358,7 +361,7 @@ def handle_game_updates(olditem, newitem):
 def fetch_file_info(d, fetch_md5):
     # fetch file name/size
     with request(d.href, byte_range=(0, 0)) as page:
-        d.name = urlparse(page.geturl()).path.split('/')[-1]
+        d.name = unquote(urlparse(page.geturl()).path.split('/')[-1])
         d.size = int(page.headers['Content-Range'].split('/')[-1])
 
         # fetch file md5
@@ -588,7 +591,7 @@ def cmd_login(user, passwd):
         etree = html5lib.parse(page, namespaceHTMLElements=False)
         for elm in etree.findall('.//script'):
             if elm.text is not None and 'GalaxyAccounts' in elm.text:
-                login_data['auth_url'] = elm.text.split("'")[1]
+                login_data['auth_url'] = elm.text.split("'")[3]
                 break
 
     # fetch the login token
@@ -771,6 +774,9 @@ def cmd_update(os_list, lang_list, skipknown, updateonly, id):
                 else:
                     gamesdb.append(item)
 
+                if i % 5 == 0:
+                    save_manifest(gamesdb)
+
         except Exception:
             log_exception('error')
 
@@ -835,7 +841,7 @@ def cmd_download(savedir, skipextras, skipgames, skipids, dryrun, id):
         return '%.1fMB' % (b / float(1024**2))
 
     def gigs(b):
-        return '%.2fGB' % (b / float(1024**3))
+        return '%.2fGB' % (b / float(1024 ** 3))
 
     if id:
         id_found = False
@@ -1254,4 +1260,4 @@ if __name__ == "__main__":
         raise
     except:
         log_exception('fatal...')
-        sys.exit(1)
+        s
