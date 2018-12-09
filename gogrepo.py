@@ -1326,9 +1326,9 @@ def cmd_import(src_dir, dest_dir,os_list,lang_list,skipextras,skipids,ids,skipga
         if skipextras:
             game.extras = []
         if skippatches:
-            game.galaxyDownloads = filter(lambda x: "patch" not in x, game.galaxyDownloads)  
-            game.sharedDownloads = filter(lambda x: "patch" not in x, game.sharedDownloads)   
-            game.downloads = filter(lambda x: "patch" not in x, game.downloads)              
+            game.galaxyDownloads = list(filter(lambda x: "patch" not in x, game.galaxyDownloads)) 
+            game.sharedDownloads = list(filter(lambda x: "patch" not in x, game.sharedDownloads)   
+            game.downloads = list(filter(lambda x: "patch" not in x, game.downloads))              
             
         if ids and not (game.title in ids) and not (str(game.id) in ids):
             continue
@@ -1448,9 +1448,9 @@ def cmd_download(savedir, skipextras,skipids, dryrun, ids,os_list, lang_list,ski
             item.sharedDownloads = []
            
         if skippatches:
-            game.galaxyDownloads = filter(lambda x: "patch" not in x, game.galaxyDownloads)  
-            game.sharedDownloads = filter(lambda x: "patch" not in x, game.sharedDownloads)   
-            game.downloads = filter(lambda x: "patch" not in x, game.downloads)    
+            item.galaxyDownloads = list(filter(lambda x: "patch" not in x, item.galaxyDownloads)) 
+            item.sharedDownloads = list(filter(lambda x: "patch" not in x, item.sharedDownloads))  
+            item.downloads = list(filter(lambda x: "patch" not in x, item.downloads))    
                     
             
         downloadsOS = [game_item for game_item in  item.downloads if game_item.os_type in os_list]
@@ -1919,9 +1919,9 @@ def cmd_backup(src_dir, dest_dir,skipextras,os_list,lang_list,ids,skipids,skipga
             game.sharedDownloads = []
        
         if skippatches:
-            game.galaxyDownloads = filter(lambda x: "patch" not in x, game.galaxyDownloads)  
-            game.sharedDownloads = filter(lambda x: "patch" not in x, game.sharedDownloads)   
-            game.downloads = filter(lambda x: "patch" not in x, game.downloads)       
+            game.galaxyDownloads = list(filter(lambda x: "patch" not in x, game.galaxyDownloads))  
+            game.sharedDownloads = list(filter(lambda x: "patch" not in x, game.sharedDownloads))   
+            game.downloads = list(filter(lambda x: "patch" not in x, game.downloads))       
             
         if ids and not (game.title in ids) and not (str(game.id) in ids):
             continue
@@ -2048,9 +2048,9 @@ def cmd_verify(gamedir, skipextras, skipids,  check_md5, check_filesize, check_z
             
             
         if skippatches:
-            game.galaxyDownloads = filter(lambda x: "patch" not in x, game.galaxyDownloads)  
-            game.sharedDownloads = filter(lambda x: "patch" not in x, game.sharedDownloads)   
-            game.downloads = filter(lambda x: "patch" not in x, game.downloads)    
+            game.galaxyDownloads = list(filter(lambda x: "patch" not in x, game.galaxyDownloads))  
+            game.sharedDownloads = list(filter(lambda x: "patch" not in x, game.sharedDownloads))   
+            game.downloads = list(filter(lambda x: "patch" not in x, game.downloads))    
         
         if skipextras:
             verify_extras = []
