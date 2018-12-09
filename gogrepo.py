@@ -1326,9 +1326,9 @@ def cmd_import(src_dir, dest_dir,os_list,lang_list,skipextras,skipids,ids,skipga
         if skipextras:
             game.extras = []
         if skippatches:
-            game.galaxyDownloads = list(filter(lambda x: "Patch" not in x.desc, game.galaxyDownloads)) 
-            game.sharedDownloads = list(filter(lambda x: "Patch" not in x.desc, game.sharedDownloads))   
-            game.downloads = list(filter(lambda x: "Patch" not in x.desc, game.downloads))              
+            game.galaxyDownloads = list(filter(lambda x: "Patch" not in x.desc and "update" not in x.desc and "Hotfix" not in x.desc, game.galaxyDownloads)) 
+            game.sharedDownloads = list(filter(lambda x: "Patch" not in x.desc and "update" not in x.desc and "Hotfix" not in x.desc, game.sharedDownloads))   
+            game.downloads = list(filter(lambda x: "Patch" not in x.desc and "update" not in x.desc and "Hotfix" not in x.desc, game.downloads))              
             
         if ids and not (game.title in ids) and not (str(game.id) in ids):
             continue
@@ -1448,9 +1448,9 @@ def cmd_download(savedir, skipextras,skipids, dryrun, ids,os_list, lang_list,ski
             item.sharedDownloads = []
            
         if skippatches:
-            item.galaxyDownloads = list(filter(lambda x: "Patch" not in x.desc, item.galaxyDownloads)) 
-            item.sharedDownloads = list(filter(lambda x: "Patch" not in x.desc, item.sharedDownloads))  
-            item.downloads = list(filter(lambda x: "Patch" not in x.desc, item.downloads))    
+            item.galaxyDownloads = list(filter(lambda x: "Patch" not in x.desc and "update" not in x.desc and "Hotfix" not in x.desc, item.galaxyDownloads)) 
+            item.sharedDownloads = list(filter(lambda x: "Patch" not in x.desc and "update" not in x.desc and "Hotfix" not in x.desc, item.sharedDownloads))  
+            item.downloads = list(filter(lambda x: "Patch" not in x.desc and "update" not in x.desc and "Hotfix" not in x.desc, item.downloads))    
 
         downloadsOS = [game_item for game_item in  item.downloads if game_item.os_type in os_list]
         item.downloads = downloadsOS
@@ -1918,9 +1918,9 @@ def cmd_backup(src_dir, dest_dir,skipextras,os_list,lang_list,ids,skipids,skipga
             game.sharedDownloads = []
        
         if skippatches:
-            game.galaxyDownloads = list(filter(lambda x: "Patch" not in x.desc, game.galaxyDownloads))  
-            game.sharedDownloads = list(filter(lambda x: "Patch" not in x.desc, game.sharedDownloads))   
-            game.downloads = list(filter(lambda x: "Patch" not in x.desc, game.downloads))       
+            game.galaxyDownloads = list(filter(lambda x: "Patch" not in x.desc and "update" not in x.desc and "Hotfix" not in x.desc, game.galaxyDownloads))  
+            game.sharedDownloads = list(filter(lambda x: "Patch" not in x.desc and "update" not in x.desc and "Hotfix" not in x.desc, game.sharedDownloads))   
+            game.downloads = list(filter(lambda x: "Patch" not in x.desc and "update" not in x.desc and "Hotfix" not in x.desc, game.downloads))       
             
         if ids and not (game.title in ids) and not (str(game.id) in ids):
             continue
@@ -2047,9 +2047,9 @@ def cmd_verify(gamedir, skipextras, skipids,  check_md5, check_filesize, check_z
             
             
         if skippatches:
-            game.galaxyDownloads = list(filter(lambda x: "Patch" not in x.desc, game.galaxyDownloads))  
-            game.sharedDownloads = list(filter(lambda x: "Patch" not in x.desc, game.sharedDownloads))   
-            game.downloads = list(filter(lambda x: "Patch" not in x.desc, game.downloads))    
+            game.galaxyDownloads = list(filter(lambda x: "Patch" not in x.desc and "update" not in x.desc and "Hotfix" not in x.desc, game.galaxyDownloads))  
+            game.sharedDownloads = list(filter(lambda x: "Patch" not in x.desc and "update" not in x.desc and "Hotfix" not in x.desc, game.sharedDownloads))   
+            game.downloads = list(filter(lambda x: "Patch" not in x.desc and "update" not in x.desc and "Hotfix" not in x.desc, game.downloads))    
         
         if skipextras:
             verify_extras = []
