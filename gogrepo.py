@@ -800,6 +800,7 @@ def process_argv(argv):
     g1.add_argument('-skipshared', action = 'store_true', help ='skip downloading installers shared between Galaxy and standalone')
     g2 = g1.add_mutually_exclusive_group()
     g2.add_argument('-skipextras', action='store_true', help='skip downloading of any GOG extra files')
+    g2.add_argument('-skippatches', action='store_true', help='skip downloading of any patches')
     g2.add_argument('-skipgames', action='store_true', help='skip downloading of any GOG game files (deprecated, use -skipgalaxy -skipstandalone -skipshared instead)')
     g3 = g1.add_mutually_exclusive_group()  # below are mutually exclusive    
     g3.add_argument('-ids', action='store', help='id(s) or title(s) of the game in the manifest to download', nargs='*', default=[])
@@ -826,10 +827,6 @@ def process_argv(argv):
     g3 = g1.add_mutually_exclusive_group()  # below are mutually exclusive    
     g3.add_argument('-skiplang', action='store', help='skip importing game files for language(s)', nargs='*', default=[x for x in VALID_LANG_TYPES if x not in DEFAULT_LANG_LIST])        
     g3.add_argument('-lang', action='store', help='import game files only for language(s)', nargs='*', default=DEFAULT_LANG_LIST)       
-    #Code path available but commented out and hardcoded as false due to lack of MD5s on extras. 
-    #g4 = g1.add_mutually_exclusive_group()
-    #g4.add_argument('-skipextras', action='store_true', help='skip downloading of any GOG extra files')
-    #g4.add_argument('-skipgames', action='store_true', help='skip downloading of any GOG game files (deprecated, use -skipgalaxy -skipstandalone -skipshared instead)')
     g1.add_argument('-nolog', action='store_true', help = 'doesn\'t writes log file gogrepo.log')
     g1.add_argument('-skipgalaxy', action='store_true', help='skip downloading Galaxy installers')
     g1.add_argument('-skipstandalone', action='store_true', help='skip downloading standlone installers')
@@ -853,6 +850,7 @@ def process_argv(argv):
     g3.add_argument('-lang', action='store', help='backup game files only for language(s)', nargs='*', default=DEFAULT_LANG_LIST)        
     g4 = g1.add_mutually_exclusive_group()
     g4.add_argument('-skipextras', action='store_true', help='skip backup of any GOG extra files')
+    g2.add_argument('-skippatches', action='store_true', help='skip downloading of any patches')
     g4.add_argument('-skipgames', action='store_true', help='skip backup of any GOG game files')
     g1.add_argument('-skipgalaxy',action='store_true', help='skip backup of any GOG Galaxy installer files')
     g1.add_argument('-skipstandalone',action='store_true', help='skip backup of any GOG standalone installer files')
@@ -880,6 +878,7 @@ def process_argv(argv):
     g5.add_argument('-lang', action='store', help='verify game files only for language(s)', nargs='*', default=DEFAULT_LANG_LIST)        
     g6 = g1.add_mutually_exclusive_group()
     g6.add_argument('-skipextras', action='store_true', help='skip verification of any GOG extra files')
+    g2.add_argument('-skippatches', action='store_true', help='skip downloading of any patches')
     g6.add_argument('-skipgames', action='store_true', help='skip verification of any GOG game files')
     g1.add_argument('-skipgalaxy',action='store_true', help='skip verification of any GOG Galaxy installer files')
     g1.add_argument('-skipstandalone',action='store_true', help='skip verification of any GOG standalone installer files')
@@ -1292,7 +1291,7 @@ def cmd_update(os_list, lang_list, skipknown, updateonly, ids, skipids,skipHidde
             cmd_update(save_os_list, save_lang_list, skipknown, updateonly, ids, skipids,skipHidden,save_installers,resumemode,save_strict)
 
 
-def cmd_import(src_dir, dest_dir,os_list,lang_list,skipextras,skipids,ids,skipgalaxy,skipstandalone,skipshared):
+def cmd_import(src_dir, dest_dir,os_list,lang_list,skipextras,skipids,ids,skipgalaxy,skipstandalone,skipshared,skippatches):
     """Recursively finds all files within root_dir and compares their MD5 values
     against known md5 values from the manifest.  If a match is found, the file will be copied
     into the game storage dir.
@@ -1326,7 +1325,10 @@ def cmd_import(src_dir, dest_dir,os_list,lang_list,skipextras,skipids,ids,skipga
             game.sharedDownloads = []
         if skipextras:
             game.extras = []
-                        
+        if skippatches:
+            game.galaxyDownloads = filter(lambda x: "patch" not in x, game.galaxyDownloads)  
+            game.sharedDownloads = filter(lambda x: "patch" not in x, game.sharedDownloads)   
+            game.downloads = filter(lambda x: "patch" not in x, game.downloads)              
             
         if ids and not (game.title in ids) and not (str(game.id) in ids):
             continue
@@ -1373,7 +1375,7 @@ def cmd_import(src_dir, dest_dir,os_list,lang_list,skipextras,skipids,ids,skipga
             shutil.copy(f, dest_file)
 
 
-def cmd_download(savedir, skipextras,skipids, dryrun, ids,os_list, lang_list,skipgalaxy,skipstandalone,skipshared):
+def cmd_download(savedir, skipextras,skipids, dryrun, ids,os_list, lang_list,skipgalaxy,skipstandalone,skipshared, skippatches):
     sizes, rates, errors = {}, {}, {}
     work = Queue()  # build a list of work items
 
@@ -1444,6 +1446,11 @@ def cmd_download(savedir, skipextras,skipids, dryrun, ids,os_list, lang_list,ski
             
         if skipshared:
             item.sharedDownloads = []
+           
+        if skippatches:
+            game.galaxyDownloads = filter(lambda x: "patch" not in x, game.galaxyDownloads)  
+            game.sharedDownloads = filter(lambda x: "patch" not in x, game.sharedDownloads)   
+            game.downloads = filter(lambda x: "patch" not in x, game.downloads)    
                     
             
         downloadsOS = [game_item for game_item in  item.downloads if game_item.os_type in os_list]
@@ -1881,7 +1888,7 @@ def cmd_download(savedir, skipextras,skipids, dryrun, ids,os_list, lang_list,ski
                 except:
                     pass
                     
-def cmd_backup(src_dir, dest_dir,skipextras,os_list,lang_list,ids,skipids,skipgalaxy,skipstandalone,skipshared):
+def cmd_backup(src_dir, dest_dir,skipextras,os_list,lang_list,ids,skipids,skipgalaxy,skipstandalone,skipshared, skippatches):
     gamesdb = load_manifest()
 
     info('finding all known files in the manifest')
@@ -1910,6 +1917,11 @@ def cmd_backup(src_dir, dest_dir,skipextras,os_list,lang_list,ids,skipids,skipga
             
         if skipshared:
             game.sharedDownloads = []
+       
+        if skippatches:
+            game.galaxyDownloads = filter(lambda x: "patch" not in x, game.galaxyDownloads)  
+            game.sharedDownloads = filter(lambda x: "patch" not in x, game.sharedDownloads)   
+            game.downloads = filter(lambda x: "patch" not in x, game.downloads)       
             
         if ids and not (game.title in ids) and not (str(game.id) in ids):
             continue
@@ -1970,7 +1982,7 @@ def cmd_backup(src_dir, dest_dir,skipextras,os_list,lang_list,ids,skipids,skipga
                     shutil.copy(os.path.join(src_game_dir, extra_file), dest_game_dir)
 
 
-def cmd_verify(gamedir, skipextras, skipids,  check_md5, check_filesize, check_zips, delete_on_fail, clean_on_fail, ids, os_list, lang_list, skipgalaxy,skipstandalone,skipshared,force_verify):
+def cmd_verify(gamedir, skipextras, skipids,  check_md5, check_filesize, check_zips, delete_on_fail, clean_on_fail, ids, os_list, lang_list, skipgalaxy,skipstandalone,skipshared,force_verify,skippatches):
     """Verifies all game files match manifest with any available md5 & file size info
     """
     item_count = 0
@@ -2034,6 +2046,11 @@ def cmd_verify(gamedir, skipextras, skipids,  check_md5, check_filesize, check_z
             game.sharedDownloads = []
             game_changed = True;
             
+            
+        if skippatches:
+            game.galaxyDownloads = filter(lambda x: "patch" not in x, game.galaxyDownloads)  
+            game.sharedDownloads = filter(lambda x: "patch" not in x, game.sharedDownloads)   
+            game.downloads = filter(lambda x: "patch" not in x, game.downloads)    
         
         if skipextras:
             verify_extras = []
@@ -2292,7 +2309,7 @@ def main(args):
         if args.wait > 0.0:
             info('sleeping for %.2fhr...' % args.wait)
             time.sleep(args.wait * 60 * 60)
-        cmd_download(args.savedir, args.skipextras, args.skipids, args.dryrun, args.ids,args.os,args.lang,args.skipgalaxy,args.skipstandalone,args.skipshared)
+        cmd_download(args.savedir, args.skipextras, args.skipids, args.dryrun, args.ids,args.os,args.lang,args.skipgalaxy,args.skipstandalone,args.skipshared, args.skippatches)
     elif args.command == 'import':
         #Hardcode these as false since extras currently do not have MD5s as such skipgames would give nothing and skipextras would change nothing. The logic path and arguments are present in case this changes, though commented out in the case of arguments)
         args.skipgames = False
@@ -2311,7 +2328,7 @@ def main(args):
             args.skipstandalone = True
             args.skipgalaxy = True
             args.skipshared = True
-        cmd_import(args.src_dir, args.dest_dir,args.os,args.lang,args.skipextras,args.skipids,args.ids,args.skipgalaxy,args.skipstandalone,args.skipshared)
+        cmd_import(args.src_dir, args.dest_dir,args.os,args.lang,args.skipextras,args.skipids,args.ids,args.skipgalaxy,args.skipstandalone,args.skipshared,args.skippatches)
     elif args.command == 'verify':
         if (args.id):
             args.ids = [args.id]    
@@ -2332,7 +2349,7 @@ def main(args):
         check_md5 = not args.skipmd5
         check_filesize = not args.skipsize
         check_zips = not args.skipzip
-        cmd_verify(args.gamedir, args.skipextras,args.skipids,check_md5, check_filesize, check_zips, args.delete, args.clean,args.ids,  args.os, args.lang,args.skipgalaxy,args.skipstandalone,args.skipshared, args.forceverify)
+        cmd_verify(args.gamedir, args.skipextras,args.skipids,check_md5, check_filesize, check_zips, args.delete, args.clean,args.ids,  args.os, args.lang,args.skipgalaxy,args.skipstandalone,args.skipshared, args.forceverify,args.skippatches)
     elif args.command == 'backup':
         if not args.os:    
             if args.skipos:
@@ -2348,7 +2365,7 @@ def main(args):
             args.skipstandalone = True
             args.skipgalaxy = True
             args.skipshared = True
-        cmd_backup(args.src_dir, args.dest_dir,args.skipextras,args.os,args.lang,args.ids,args.skipids,args.skipgalaxy,args.skipstandalone,args.skipshared)
+        cmd_backup(args.src_dir, args.dest_dir,args.skipextras,args.os,args.lang,args.ids,args.skipids,args.skipgalaxy,args.skipstandalone,args.skipshared,args.skippatches)
     elif args.command == 'clean':
         cmd_clean(args.cleandir, args.dryrun)
 
