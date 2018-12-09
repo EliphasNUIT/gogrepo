@@ -779,7 +779,7 @@ def process_argv(argv):
     g3.add_argument('-lang', action='store', help='game language(s)', nargs='*', default=[])
     g3.add_argument('-skiplang', action='store', help='skip game language(s)', nargs='*', default=[])      
     g1.add_argument('-skiphidden',action='store_true',help='skip games marked as hidden')
-    g1.add_argument('-installers', action='store', choices = ['galaxy','standalone','both'], default = 'standalone',  help='GOG Installer type to use: galaxy, standalone or both. Default: standalone ')    
+    g1.add_argument('-installers', action='store', choices = ['galaxy','standalone','both'], default = 'both',  help='GOG Installer type to use: galaxy, standalone or both. Default: both ')    
     g4 = g1.add_mutually_exclusive_group()  # below are mutually exclusive
     g4.add_argument('-skipknown', action='store_true', help='skip games already known by manifest')
     g4.add_argument('-updateonly', action='store_true', help='only games marked with the update tag')
@@ -798,9 +798,9 @@ def process_argv(argv):
     g1.add_argument('-skipgalaxy', action='store_true', help='skip downloading Galaxy installers')
     g1.add_argument('-skipstandalone', action='store_true', help='skip downloading standlone installers')
     g1.add_argument('-skipshared', action = 'store_true', help ='skip downloading installers shared between Galaxy and standalone')
+    g1.add_argument('-skippatches', action='store_true', help='skip downloading of any patches')
     g2 = g1.add_mutually_exclusive_group()
     g2.add_argument('-skipextras', action='store_true', help='skip downloading of any GOG extra files')
-    g2.add_argument('-skippatches', action='store_true', help='skip downloading of any patches')
     g2.add_argument('-skipgames', action='store_true', help='skip downloading of any GOG game files (deprecated, use -skipgalaxy -skipstandalone -skipshared instead)')
     g3 = g1.add_mutually_exclusive_group()  # below are mutually exclusive    
     g3.add_argument('-ids', action='store', help='id(s) or title(s) of the game in the manifest to download', nargs='*', default=[])
@@ -850,9 +850,9 @@ def process_argv(argv):
     g3.add_argument('-lang', action='store', help='backup game files only for language(s)', nargs='*', default=DEFAULT_LANG_LIST)        
     g4 = g1.add_mutually_exclusive_group()
     g4.add_argument('-skipextras', action='store_true', help='skip backup of any GOG extra files')
-    g2.add_argument('-skippatches', action='store_true', help='skip downloading of any patches')
     g4.add_argument('-skipgames', action='store_true', help='skip backup of any GOG game files')
     g1.add_argument('-skipgalaxy',action='store_true', help='skip backup of any GOG Galaxy installer files')
+    g1.add_argument('-skippatches', action='store_true', help='skip downloading of any patches')
     g1.add_argument('-skipstandalone',action='store_true', help='skip backup of any GOG standalone installer files')
     g1.add_argument('-skipshared',action='store_true',help ='skip backup of any installers included in both the GOG Galalaxy and Standalone sets')
     g1.add_argument('-nolog', action='store_true', help = 'doesn\'t writes log file gogrepo.log')
@@ -878,8 +878,8 @@ def process_argv(argv):
     g5.add_argument('-lang', action='store', help='verify game files only for language(s)', nargs='*', default=DEFAULT_LANG_LIST)        
     g6 = g1.add_mutually_exclusive_group()
     g6.add_argument('-skipextras', action='store_true', help='skip verification of any GOG extra files')
-    g2.add_argument('-skippatches', action='store_true', help='skip downloading of any patches')
     g6.add_argument('-skipgames', action='store_true', help='skip verification of any GOG game files')
+    g1.add_argument('-skippatches', action='store_true', help='skip downloading of any patches')
     g1.add_argument('-skipgalaxy',action='store_true', help='skip verification of any GOG Galaxy installer files')
     g1.add_argument('-skipstandalone',action='store_true', help='skip verification of any GOG standalone installer files')
     g1.add_argument('-skipshared',action='store_true',help ='skip verification of any installers included in both the GOG Galalaxy and Standalone sets')
@@ -1326,9 +1326,9 @@ def cmd_import(src_dir, dest_dir,os_list,lang_list,skipextras,skipids,ids,skipga
         if skipextras:
             game.extras = []
         if skippatches:
-            game.galaxyDownloads = list(filter(lambda x: "patch" not in x, game.galaxyDownloads)) 
-            game.sharedDownloads = list(filter(lambda x: "patch" not in x, game.sharedDownloads)   
-            game.downloads = list(filter(lambda x: "patch" not in x, game.downloads))              
+            game.galaxyDownloads = list(filter(lambda x: "Patch" not in x.desc, game.galaxyDownloads)) 
+            game.sharedDownloads = list(filter(lambda x: "Patch" not in x.desc, game.sharedDownloads))   
+            game.downloads = list(filter(lambda x: "Patch" not in x.desc, game.downloads))              
             
         if ids and not (game.title in ids) and not (str(game.id) in ids):
             continue
@@ -1448,11 +1448,10 @@ def cmd_download(savedir, skipextras,skipids, dryrun, ids,os_list, lang_list,ski
             item.sharedDownloads = []
            
         if skippatches:
-            item.galaxyDownloads = list(filter(lambda x: "patch" not in x, item.galaxyDownloads)) 
-            item.sharedDownloads = list(filter(lambda x: "patch" not in x, item.sharedDownloads))  
-            item.downloads = list(filter(lambda x: "patch" not in x, item.downloads))    
-                    
-            
+            item.galaxyDownloads = list(filter(lambda x: "Patch" not in x.desc, item.galaxyDownloads)) 
+            item.sharedDownloads = list(filter(lambda x: "Patch" not in x.desc, item.sharedDownloads))  
+            item.downloads = list(filter(lambda x: "Patch" not in x.desc, item.downloads))    
+
         downloadsOS = [game_item for game_item in  item.downloads if game_item.os_type in os_list]
         item.downloads = downloadsOS
         #print(item.downloads)
@@ -1919,9 +1918,9 @@ def cmd_backup(src_dir, dest_dir,skipextras,os_list,lang_list,ids,skipids,skipga
             game.sharedDownloads = []
        
         if skippatches:
-            game.galaxyDownloads = list(filter(lambda x: "patch" not in x, game.galaxyDownloads))  
-            game.sharedDownloads = list(filter(lambda x: "patch" not in x, game.sharedDownloads))   
-            game.downloads = list(filter(lambda x: "patch" not in x, game.downloads))       
+            game.galaxyDownloads = list(filter(lambda x: "Patch" not in x.desc, game.galaxyDownloads))  
+            game.sharedDownloads = list(filter(lambda x: "Patch" not in x.desc, game.sharedDownloads))   
+            game.downloads = list(filter(lambda x: "Patch" not in x.desc, game.downloads))       
             
         if ids and not (game.title in ids) and not (str(game.id) in ids):
             continue
@@ -2048,9 +2047,9 @@ def cmd_verify(gamedir, skipextras, skipids,  check_md5, check_filesize, check_z
             
             
         if skippatches:
-            game.galaxyDownloads = list(filter(lambda x: "patch" not in x, game.galaxyDownloads))  
-            game.sharedDownloads = list(filter(lambda x: "patch" not in x, game.sharedDownloads))   
-            game.downloads = list(filter(lambda x: "patch" not in x, game.downloads))    
+            game.galaxyDownloads = list(filter(lambda x: "Patch" not in x.desc, game.galaxyDownloads))  
+            game.sharedDownloads = list(filter(lambda x: "Patch" not in x.desc, game.sharedDownloads))   
+            game.downloads = list(filter(lambda x: "Patch" not in x.desc, game.downloads))    
         
         if skipextras:
             verify_extras = []
